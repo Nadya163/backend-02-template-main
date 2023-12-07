@@ -1,19 +1,74 @@
-const http = require('http');
+const http = require("http");
+const url = require("url");
+const getUsers = require("./modules/users");
 
-const hostname = '127.0.0.1';
+const hostname = "127.0.0.1";
 const port = 3003;
 
 const server = http.createServer((request, response) => {
+  const urlObject = new URL(request.url, `http://${hostname}:${port}`);
+  const queryObject = urlObject.searchParams;
 
-    // Написать обработчик запроса:
-    // - Ответом на запрос `?hello=<name>` должна быть **строка** "Hello, <name>.", код ответа 200
-    // - Если параметр `hello` указан, но не передано `<name>`, то ответ **строка** "Enter a name", код ответа 400
-    // - Ответом на запрос `?users` должен быть **JSON** с содержимым файла `data/users.json`, код ответа 200
-    // - Если никакие параметры не переданы, то ответ **строка** "Hello, World!", код ответа 200
-    // - Если переданы какие-либо другие параметры, то пустой ответ, код ответа 500
+  if (urlObject.pathname === "/users") {
+    const users = getUsers();
 
+    if (users) {
+      response.statusCode = 200;
+      response.setHeader("Content-Type", "application/json");
+      response.end(users);
+    } else {
+      response.statusCode = 500;
+      response.setHeader("Content-Type", "text/plain");
+      response.end("Internal Server Error");
+    }
+  } else if (queryObject.has("hello")) {
+    const name = queryObject.get("hello");
+    const users = getUsers();
+
+    if (users) {
+      const parsedUsers = JSON.parse(users);
+      const user = parsedUsers.find(
+        (user) => user.name.toLowerCase() === name.toLowerCase()
+      );
+
+      if (user) {
+        response.statusCode = 200;
+        response.setHeader("Content-Type", "text/plain");
+        response.end(`hello, ${user.name}`); 
+      } else {
+        response.statusCode = 400;
+        response.setHeader("Content-Type", "text/plain");
+        response.end("Bad Request: user not found");
+      } 
+    } else if (queryObject.get("hello") === undefined) {
+      response.statusCode = 400;
+      response.setHeader("Content-Type", "text/plain");
+      response.end("Bad Request: enter a name");
+    } else {
+      response.statusCode = 500;
+      response.setHeader("Content-Type", "text/plain");
+      response.end("internal server error");
+    }
+  } else {
+    response.statusCode = 200;
+    response.setHeader = "Content-Type: text/plain";
+    response.end("Hello, world!");
+  }
+
+  // else {
+  //     response.statusCode = 500;
+  //     response.setHeader("Content-Type", "text/plain");
+  //     response.end("Internal Server Error");
+  // }
 });
 
-server.listen( port, hostname, () => {
-    console.log(`Сервер закпущен по адесу http://${hostname}:${port}`);
-})
+server.listen(port, hostname, () => {
+  console.log(`Сервер запущен по адресу http://${hostname}:${port}/`);
+});
+
+// Написать обработчик запроса:
+// - Ответом на запрос `?hello=<name>` должна быть **строка** "Hello, <name>.", код ответа 200
+// - Если параметр `hello` указан, но не передано `<name>`, то ответ **строка** "Enter a name", код ответа 400
+// - Ответом на запрос `?users` должен быть **JSON** с содержимым файла `data/users.json`, код ответа 200
+// - Если никакие параметры не переданы, то ответ **строка** "Hello, World!", код ответа 200
+// - Если переданы какие-либо другие параметры, то пустой ответ, код ответа 500
