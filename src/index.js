@@ -1,6 +1,8 @@
 const http = require("http");
 const url = require("url");
-const getUsers = require("./modules/users");
+const getUsers = require("./modules/users.js");
+
+console.log(url);
 
 const hostname = "127.0.0.1";
 const port = 3003;
@@ -27,19 +29,9 @@ const server = http.createServer((request, response) => {
 
     if (users) {
       const parsedUsers = JSON.parse(users);
-      const user = parsedUsers.find(
-        (user) => user.name.toLowerCase() === name.toLowerCase()
-      );
-
-      if (user) {
         response.statusCode = 200;
         response.setHeader("Content-Type", "text/plain");
-        response.end(`hello, ${user.name}`); 
-      } else {
-        response.statusCode = 400;
-        response.setHeader("Content-Type", "text/plain");
-        response.end("Bad Request: user not found");
-      } 
+        response.end(`hello, ${name}`); 
     } else if (queryObject.get("hello") === undefined) {
       response.statusCode = 400;
       response.setHeader("Content-Type", "text/plain");
@@ -63,3 +55,4 @@ const server = http.createServer((request, response) => {
 server.listen(port, hostname, () => {
   console.log(`Сервер запущен по адресу http://${hostname}:${port}/`);
 });
+   
