@@ -1,5 +1,5 @@
 const LoggerOne = (request, response, next) => {
-  console.log(Log1);
+  console.log('Log1');
   next();
 }
 
